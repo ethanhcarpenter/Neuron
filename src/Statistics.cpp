@@ -44,8 +44,6 @@ int Statistics::getEpoch() {
 }
 
 float Statistics::averageEpochTime() {
-	//first time accidently writing /* */ comments needed to divide a pointer ref 
-	//total/*epochTimes...
 	float avg = epochTimes.load()->back() / epochTimes.load()->size();
 	return avg;
 }
