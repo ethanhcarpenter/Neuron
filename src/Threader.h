@@ -24,6 +24,6 @@ public:
 	queue<function<void()>>& getQueue();
 	condition_variable& getCV();
 	void setSideThreadRunning(bool v);
-       
+
 };
 

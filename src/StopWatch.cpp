@@ -5,13 +5,13 @@ void StopWatch::start() {
 	startTime = chrono::high_resolution_clock::now();
 }
 
-float StopWatch::elapsedSeconds() {
+const float StopWatch::elapsedSeconds() {
 	auto now = chrono::high_resolution_clock::now();
 	chrono::duration<float> elapsed = now - startTime;
 	return elapsed.count();
 }
-float StopWatch::elapsedMilliSeconds() {
+const float StopWatch::elapsedMilliSeconds() {
 	auto now = chrono::high_resolution_clock::now();
 	chrono::duration<float> elapsed = now - startTime;
-	return elapsed.count()*1000;
+	return elapsed.count() * 1000;
 }

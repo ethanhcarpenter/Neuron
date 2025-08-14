@@ -9,6 +9,7 @@
 
 
 
+
 #include "Visualiser.h"
 #include "DataSet.h"
 #include "StopWatch.h"
@@ -62,11 +63,11 @@ class NeuralNetwork {
 	vector<float> epochElapsedTimesMS;
 
 public:
-	NeuralNetwork(bool v,vector<int> ls,float lr=0.1);
+	NeuralNetwork(bool v, vector<int> ls, float lr = 0.1);
 
 	void initWeights();
 
-	void feedforward(vector<float>& inputVals,bool firstpass=false,bool updateWeights=false);
+	void feedforward(vector<float>& inputVals, bool firstpass = false, bool updateWeights = false);
 
 	void backpropagate(vector<float>& targetVals);
 
@@ -76,10 +77,10 @@ public:
 	int numberOfInputs();
 	void outputEpochTimes();
 	void outputTestTime();
-	void outputPredictions(const vector<float>& predicted, const vector<float>& expected,float range);
+	void outputPredictions(const vector<float>& predicted, const vector<float>& expected, float range);
 
-	void train(DataSet& data, int epochs,bool debugTimes);
-	void test(DataSet& data,bool debugTimes,bool debugPredictions, float range);
+	void train(DataSet& data, int epochs, bool debugTimes);
+	void test(DataSet& data, bool debugTimes, bool debugPredictions, float range);
 	void threadVisualise();
 
 	void shutdown();

@@ -8,7 +8,7 @@
 #include <string>
 #include <algorithm>
 #include <cmath>
-#define M_PI 3.14159265358979323846
+constexpr double M_PI = 3.14159265358979323846;
 using namespace std;
 
 class Connection {
@@ -19,13 +19,13 @@ private:
 public:
 	Connection(float fX, float fY, float tX, float tY, float w);
 	void setDrawn(bool drew);
-	bool isDrawn();
+	const bool isDrawn();
 	void setWeight(float w);
-	float getWeight();
-	float getFromX();
-	float getFromY();
-	float getToX();
-	float getToY();
+	const float getWeight();
+	const float getFromX();
+	const float getFromY();
+	const float getToX();
+	const float getToY();
 
 };
 
@@ -48,25 +48,22 @@ private:
 public:
 	Visualiser();
 	void setup(const char* name, int targetMonitorIndex, vector<int> layerSizes, int windowWidth = -1, int windowHeight = -1);
-	float getTabContentHeight();
+	const float getTabContentHeight();
 	void generateNeuronPositions(const vector<int>& layers, float width, float height);
 	void drawCircle(float cx, float cy, float r, int num_segments);
-	float calculateNeuronRadius(float height, float margin);
+	const float calculateNeuronRadius(float height, float margin);
 	void drawNeurons();
 	tuple<float, float, float, float> generateColour(float weight);
 	void drawConnections();
 	void terminate();
-	int getCurrentConnection();
+	const int getCurrentConnection();
 	vector<Connection>& getConnections();
 	GLFWwindow* getWindow();
 	void addConnectionIndex(int fromLayer, int from, int to);
-	void addConnection(int fromLayer, int from, int to, float weight);
-	void changeWeight(int fromLayer, int from, int to, float weight);
 	string generateConnectionUID(int fromLayer, int from, int to, float weight);
-	float getConnectionWeight(int fromLayer, int from, int to, float weight);
+	const float getConnectionWeight(int fromLayer, int from, int to, float weight);
 	void mainLoop();
-	bool isSettingUp();
-	void removeDuplicateConnections();
+	const bool isSettingUp();
 	void updateConnection(int fromLayer, int from, int to, float weight);
 
 

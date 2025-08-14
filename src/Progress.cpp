@@ -20,6 +20,6 @@ float Progress::getPercent(string name) {
 	int current = get<CurrentAmount>(tracking[name]);
 	int total = get<TotalAmount>(tracking[name]);
 	float percent = static_cast<float>(current) / static_cast<float>(total);
-	return percent*100;
+	return percent * 100;
 }
 void Progress::refresh(string name, int initialAmount, int total, bool direction) { tracking.erase(name); }

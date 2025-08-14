@@ -9,13 +9,13 @@ Connection::Connection(float fX, float fY, float tX, float tY, float w) {
 	weight = w;
 }
 void Connection::setDrawn(bool drew) { drawn = drew; }
-bool Connection::isDrawn() { return drawn; }
-float Connection::getFromX() { return fromX; }
-float Connection::getFromY() { return fromY; }
-float Connection::getToX() { return toX; }
-float Connection::getToY() { return toY; }
+const bool Connection::isDrawn() { return drawn; }
+const float Connection::getFromX() { return fromX; }
+const float Connection::getFromY() { return fromY; }
+const float Connection::getToX() { return toX; }
+const float Connection::getToY() { return toY; }
 void Connection::setWeight(float w) { weight = w; }
-float Connection::getWeight() { return weight; }
+const float Connection::getWeight() { return weight; }
 
 
 
@@ -34,7 +34,7 @@ void Visualiser::setup(const char* name, int targetMonitorIndex, vector<int> lay
 		windowDimensions.first,
 		windowDimensions.second,
 		name,
-		NULL,  
+		NULL,
 		NULL
 	);
 
@@ -69,13 +69,12 @@ void Visualiser::setup(const char* name, int targetMonitorIndex, vector<int> lay
 	isSetup = true;
 }
 
-float Visualiser::getTabContentHeight() {
+const float Visualiser::getTabContentHeight() {
 	float usableHeight = 0;
 	ImGui_ImplOpenGL3_NewFrame();
 	ImGui_ImplGlfw_NewFrame();
 	ImGui::NewFrame();
 
-	// Begin your tab bar and measure available height
 	ImGui::SetNextWindowPos(ImVec2(0, 0));
 	ImGui::SetNextWindowSize(ImGui::GetIO().DisplaySize);
 	ImGui::Begin("Dummy", nullptr, windowFlags);
@@ -125,7 +124,7 @@ void Visualiser::drawCircle(float cx, float cy, float r, int num_segments) {
 	glEnd();
 }
 
-float Visualiser::calculateNeuronRadius(float height, float margin) {
+const float Visualiser::calculateNeuronRadius(float height, float margin) {
 	int maxNeurons = *max_element(layers.begin(), layers.end());
 	float spacingY = height / (maxNeurons + 1);
 	return (spacingY / 2.0f) - margin;
@@ -141,7 +140,7 @@ void Visualiser::drawNeurons() {
 	}
 }
 
-int Visualiser::getCurrentConnection() { return currentConnection; }
+const int Visualiser::getCurrentConnection() { return currentConnection; }
 vector<Connection>& Visualiser::getConnections() { return connections; }
 
 tuple<float, float, float, float> Visualiser::generateColour(float weight) {
@@ -158,7 +157,7 @@ void Visualiser::drawConnections() {
 	for (auto& c : connections) {
 		if (!c.isDrawn()) continue;
 		auto colour = generateColour(c.getWeight());
-		float lineWidth = roundf( abs(c.getWeight()) *10.0f);
+		float lineWidth = roundf(abs(c.getWeight()) * 10.0f);
 		glLineWidth(lineWidth);
 		glBegin(GL_LINES);
 		glColor4f(get<0>(colour), get<1>(colour), get<2>(colour), 1.0f);
@@ -169,13 +168,13 @@ void Visualiser::drawConnections() {
 	glLineWidth(1.0f);
 }
 
-bool Visualiser::isSettingUp() { return !isSetup; }
+const bool Visualiser::isSettingUp() { return !isSetup; }
 string Visualiser::generateConnectionUID(int fromLayer, int from, int to, float weight) {
 	string uid = to_string(fromLayer) + to_string(from) + to_string(to);
 	return uid;
- }
+}
 
-float Visualiser::getConnectionWeight(int fromLayer, int from, int to, float weight) {
+const float Visualiser::getConnectionWeight(int fromLayer, int from, int to, float weight) {
 	string uid = generateConnectionUID(fromLayer, from, to, weight);
 	auto it = connectionsIndexes.find(uid);
 	int index = it->second;
@@ -183,11 +182,10 @@ float Visualiser::getConnectionWeight(int fromLayer, int from, int to, float wei
 }
 
 void Visualiser::updateConnection(int fromLayer, int from, int to, float weight) {
-	
+
 	string uid = generateConnectionUID(fromLayer, from, to, weight);
 	auto it = connectionsIndexes.find(uid);
 	if (it == connectionsIndexes.end()) {
-		// New connection: add with positions and weight
 		float fromX = positions[fromLayer][from].first;
 		float fromY = positions[fromLayer][from].second;
 		float toX = positions[fromLayer + 1][to].first;
@@ -197,9 +195,7 @@ void Visualiser::updateConnection(int fromLayer, int from, int to, float weight)
 		connectionsIndexes[uid] = static_cast<int>(connections.size() - 1);
 	}
 	else {
-		// Existing connection: update weight
 		int index = it->second;
-		//cout << "updated from: " << connections.at(index).getWeight() << " to: " << weight << "\n";
 		connections.at(index).setWeight(weight);
 	}
 }
@@ -211,49 +207,6 @@ void Visualiser::addConnectionIndex(int fromLayer, int from, int to) {
 	uid += to_string(to);
 	connectionsIndexes[uid] = static_cast<int>(connections.size() - 1);
 }
-//void Visualiser::addConnection(int fromLayer, int from, int to, float weight) {
-//	float fromX, fromY, toX, toY;
-//	fromX = positions[fromLayer][from].first;
-//	fromY = positions[fromLayer][from].second;
-//	toX = positions[fromLayer + 1][to].first;
-//	toY = positions[fromLayer + 1][to].second;
-//	connections.push_back({ fromX,fromY,toX,toY,weight });
-//	removeDuplicateConnections();
-//}
-//
-//void Visualiser::removeDuplicateConnections() {
-//	auto isSame = [](Connection& a, Connection& b) {
-//		return a.getFromX() == b.getFromX() &&
-//			a.getFromY() == b.getFromY() &&
-//			a.getToX() == b.getToX() &&
-//			a.getToY() == b.getToY();
-//		};
-//	sort(connections.begin(), connections.end(),
-//		[](Connection& a, Connection& b) {
-//			if (a.getFromX() != b.getFromX()) return a.getFromX() < b.getFromX();
-//			if (a.getFromY() != b.getFromY()) return a.getFromY() < b.getFromY();
-//			if (a.getToX() != b.getToX())   return a.getToX() < b.getToX();
-//			return a.getToY() < b.getToY();
-//		}
-//	);
-//	connections.erase(
-//		unique(connections.begin(), connections.end(), isSame),
-//		connections.end()
-//	);
-//}
-//
-//void Visualiser::changeWeight(int fromLayer, int from, int to, float weight) {
-//	string uid = "";
-//	uid += to_string(fromLayer);
-//	uid += to_string(from);
-//	uid += to_string(to);
-//	int index = connectionsIndexes[uid];
-//	if (index == 12) {
-//		int a = 12;
-//	}
-//	connections.at(index).setWeight(weight);
-//}
-
 
 void Visualiser::mainLoop() {
 	glfwSetKeyCallback(window, [](GLFWwindow* window, int key, int scancode, int action, int mods) {
@@ -262,22 +215,18 @@ void Visualiser::mainLoop() {
 		});
 
 	while (!glfwWindowShouldClose(window)) {
-		// poll inputs
 		glfwPollEvents();
 
-		// clear + draw background
 		int winWidth, winHeight;
 		glfwGetFramebufferSize(window, &winWidth, &winHeight);
 		glViewport(0, 0, winWidth, winHeight);
 		glClearColor(0.1f, 0.1f, 0.1f, 1.0f);
 		glClear(GL_COLOR_BUFFER_BIT);
 
-		// start ImGui frame
 		ImGui_ImplOpenGL3_NewFrame();
 		ImGui_ImplGlfw_NewFrame();
 		ImGui::NewFrame();
 
-		// draw UI
 		bool showNN = false;
 		const ImGuiViewport* viewport = ImGui::GetMainViewport();
 		ImGui::SetNextWindowPos(viewport->Pos);
@@ -302,11 +251,9 @@ void Visualiser::mainLoop() {
 		}
 		ImGui::End();
 
-		// render ImGui
 		ImGui::Render();
 		ImGui_ImplOpenGL3_RenderDrawData(ImGui::GetDrawData());
 
-		// draw NN overlay
 		if (showNN) {
 			glMatrixMode(GL_PROJECTION);
 			glPushMatrix();
@@ -325,7 +272,6 @@ void Visualiser::mainLoop() {
 			glMatrixMode(GL_MODELVIEW);
 		}
 
-		// swap buffers
 		glfwSwapBuffers(window);
 	}
 	terminate();
@@ -333,30 +279,11 @@ void Visualiser::mainLoop() {
 }
 
 void Visualiser::terminate() {
-	// Cleanup ImGui
 	ImGui_ImplOpenGL3_Shutdown();
 	ImGui_ImplGlfw_Shutdown();
 	ImGui::DestroyContext();
 
-	// Cleanup GLFW
 	glfwSetWindowShouldClose(window, true);
 	glfwWindowShouldClose(window);
 	glfwTerminate();
 }
-
-
-
-//no need
-//if (startingAnimation) {
-//
-//	float now = glfwGetTime();
-//	if (now - lastUpdate >= delayPerConnection && currentConnection < connections.size()) {
-//		connections[currentConnection].setDrawn(true);
-//		currentConnection++;
-//		lastUpdate = now;
-//	}
-//	else if (currentConnection != 0 && currentConnection == connections.size()) { startingAnimation = false; }
-//}
-
-
-

@@ -1,20 +1,20 @@
 #include"Threader.h"
 
-Threader::Threader():sideAlternateThreadRunning(true) {};
+Threader::Threader() :sideAlternateThreadRunning(true) {};
 
 void Threader::visualiserWorker() {
-    while (true) {
-        function<void()> task;
-        {
-            unique_lock<mutex> lock(queueMutex);
-            cv.wait(lock, [&] { return !sideAlternateThreadRunning || !sideSideThreadFunction.empty(); });
-            if (!sideAlternateThreadRunning && sideSideThreadFunction.empty())
-                break;
-            task = move(sideSideThreadFunction.front());
-            sideSideThreadFunction.pop();
-        }
-        task();
-    }
+	while (true) {
+		function<void()> task;
+		{
+			unique_lock<mutex> lock(queueMutex);
+			cv.wait(lock, [&] { return !sideAlternateThreadRunning || !sideSideThreadFunction.empty(); });
+			if (!sideAlternateThreadRunning && sideSideThreadFunction.empty())
+				break;
+			task = move(sideSideThreadFunction.front());
+			sideSideThreadFunction.pop();
+		}
+		task();
+	}
 }
 
 void Threader::setSideThreadRunning(bool v) { sideAlternateThreadRunning = v; }

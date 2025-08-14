@@ -240,7 +240,7 @@ void NeuralNetwork::train(DataSet& data, int epochs, bool debugTimes) {
 	for (int e = 0; e < epochs; e++) {
 		progress.trackNew("input", 0, inputSize, true);
 		for (int i = 0; i < inputSize; ++i) {
-			
+
 			feedforward(data.getInputs()[i], e == 0 && i == 0, i % modulo == 0);
 			backpropagate(data.getOutputs()[i]);
 			progress.update("input", 1);

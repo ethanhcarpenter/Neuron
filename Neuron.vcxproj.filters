@@ -18,12 +18,12 @@
     <Filter Include="Data Files">
       <UniqueIdentifier>{c28af950-850d-49be-9824-4e29516307c0}</UniqueIdentifier>
     </Filter>
+    <Filter Include="Run Files">
+      <UniqueIdentifier>{aff9a0f9-5f94-4cbd-90ee-318d9e53dbf0}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="src\DataSet.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="src\Main.h">
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="src\NN.h">
@@ -68,18 +68,18 @@
     <ClInclude Include="lib\imgui\imstb_truetype.h">
       <Filter>Library Files\imgui</Filter>
     </ClInclude>
+    <ClInclude Include="src\Rules.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="src\Run.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="src\DataSet.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="src\Main.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
     <ClCompile Include="src\NN.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="src\optimising tests.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="src\Progress.cpp">
@@ -117,6 +117,12 @@
     </ClCompile>
     <ClCompile Include="lib\imgui\imgui_widgets.cpp">
       <Filter>Library Files\imgui</Filter>
+    </ClCompile>
+    <ClCompile Include="src\main.cpp">
+      <Filter>Run Files</Filter>
+    </ClCompile>
+    <ClCompile Include="src\Run.cpp">
+      <Filter>Source Files</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>

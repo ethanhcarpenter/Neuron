@@ -13,10 +13,10 @@ enum TupleIndexes {
 
 class Progress {
 private:
-	unordered_map<string, tuple<int,int,bool>>tracking;
+	unordered_map<string, tuple<int, int, bool>>tracking;
 public:
-	void trackNew(string name, int initialAmount,int total,bool direction);
-	void update(string name,int increment);
+	void trackNew(string name, int initialAmount, int total, bool direction);
+	void update(string name, int increment);
 	int getCurrent(string name);
 	int getTotal(string name);
 	float getPercent(string name);
