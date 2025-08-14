@@ -1,4 +1,5 @@
 #include "Visualiser.h"
+#include <iostream>
 
 
 Connection::Connection(float fX, float fY, float tX, float tY, float w) {
@@ -8,8 +9,6 @@ Connection::Connection(float fX, float fY, float tX, float tY, float w) {
 	toY = tY;
 	weight = w;
 }
-void Connection::setDrawn(bool drew) { drawn = drew; }
-const bool Connection::isDrawn() { return drawn; }
 const float Connection::getFromX() { return fromX; }
 const float Connection::getFromY() { return fromY; }
 const float Connection::getToX() { return toX; }
@@ -52,7 +51,7 @@ void Visualiser::setup(const char* name, int targetMonitorIndex, vector<int> lay
 		| ImGuiWindowFlags_NoResize
 		| ImGuiWindowFlags_NoMove
 		| ImGuiWindowFlags_NoCollapse
-		| ImGuiWindowFlags_NoBackground   
+		| ImGuiWindowFlags_NoBackground
 		| ImGuiWindowFlags_NoBringToFrontOnFocus;
 
 	ImGui::CreateContext();
@@ -71,6 +70,11 @@ void Visualiser::setup(const char* name, int targetMonitorIndex, vector<int> lay
 	generateNeuronPositions(layers, windowDimensions.first, usableHeight);
 	neuronRadius = calculateNeuronRadius(usableHeight, 1.0f);
 	isSetup = true;
+	calculatedConnectionCount = 0;
+	for (int i = 0; i < layers.size() - 1; i++) {
+		int product = layers[i] * layers[i + 1];
+		calculatedConnectionCount += product;
+	}
 }
 
 const float Visualiser::getTabContentHeight() {
@@ -158,8 +162,9 @@ tuple<float, float, float, float> Visualiser::generateColour(float weight) {
 }
 
 void Visualiser::drawConnections() {
+	
+	if (connections.size() != calculatedConnectionCount) { return; }
 	for (auto& c : connections) {
-		if (!c.isDrawn()) continue;
 		auto colour = generateColour(c.getWeight());
 		float lineWidth = roundf(abs(c.getWeight()) * 10.0f);
 		glLineWidth(lineWidth);
@@ -174,7 +179,7 @@ void Visualiser::drawConnections() {
 
 const bool Visualiser::isSettingUp() { return !isSetup; }
 string Visualiser::generateConnectionUID(int fromLayer, int from, int to) {
-	string uid = to_string(fromLayer) + to_string(from) + to_string(to);
+	string uid = "from layer:" + to_string(fromLayer) + " node: " + to_string(from) + " To layer: " + to_string(fromLayer+1)+" node: " + to_string(to);
 	return uid;
 }
 
@@ -253,7 +258,7 @@ void Visualiser::mainLoop(shared_ptr<shared_mutex>* statsMutex) {
 			ImGui::End();
 		}
 
-		
+
 		if (showNN) {
 			//scope for the lock as to  not perma lock throughout the mainloop
 			{
@@ -264,12 +269,12 @@ void Visualiser::mainLoop(shared_ptr<shared_mutex>* statsMutex) {
 
 				ImGui::TextColored(ImVec4(0.2f, 0.7f, 1.0f, 1.0f), "Epoch %d", stats.load()->get()->getEpoch());
 
-				float inputProgress = static_cast<float>(stats.load()->get()->getInput()) / stats.load()->get()->getTotalInputs();
+				float inputProgress = static_cast<float>(stats.load()->get()->getInput() + 1) / stats.load()->get()->getTotalInputs();
 				ImGui::Text("Input: %d / %d", stats.load()->get()->getInput(), stats.load()->get()->getTotalInputs());
 				ImGui::ProgressBar(inputProgress, ImVec2(-1, 0), "");
 
-				ImGui::TextColored(ImVec4(0.2f, 0.7f, 1.0f, 1.0f), "last epoch time: %.2f%", stats.load()->get()->lastEpochTime());
-				ImGui::TextColored(ImVec4(0.2f, 0.7f, 1.0f, 1.0f), "Average epoch time: %.2f%", stats.load()->get()->averageEpochTime());
+				ImGui::TextColored(ImVec4(0.2f, 0.7f, 1.0f, 1.0f), "LET: %.0f%ms", stats.load()->get()->lastEpochTime());
+				ImGui::TextColored(ImVec4(0.2f, 0.7f, 1.0f, 1.0f), "AET: %.0f%ms", stats.load()->get()->averageEpochTime());
 
 
 				// Optional: approximate epoch time

@@ -210,23 +210,26 @@ void NeuralNetwork::train(DataSet& data, int epochs) {
 	int modulo = (inputSize / 3) > 0 ? inputSize / 3 : inputSize;
 
 	for (int e = 0; e < epochs; e++) {
-		if (auto mtxPtr = statsMutex.load()->get()) {
-			std::unique_lock<std::shared_mutex> lock(*mtxPtr);
-			stats.load()->get()->nextEpoch(stopwatch);
-			stats.load()->get()->resetInput();
-		}
+		
 		for (int i = 0; i < inputSize; ++i) {
+
+			
+			feedforward(data.getInputs()[i], e == 0 && i == 0, i % modulo == 0);
+			backpropagate(data.getOutputs()[i]);
 
 			if (auto mtxPtr = statsMutex.load()->get()) {
 				std::unique_lock<std::shared_mutex> lock(*mtxPtr);
 				stats.load()->get()->nextInput();
 			}
+		}
 
-			feedforward(data.getInputs()[i], e == 0 && i == 0, i % modulo == 0);
-			backpropagate(data.getOutputs()[i]);
+		if (auto mtxPtr = statsMutex.load()->get()) {
+			std::unique_lock<std::shared_mutex> lock(*mtxPtr);
+			stats.load()->get()->nextEpoch(stopwatch);
+			stats.load()->get()->resetInput();
 		}
 	}
-	threader.setSideThreadRunning(true);
+	//threader.setSideThreadRunning(true);
 }
 
 void NeuralNetwork::test(DataSet& data, float range) {

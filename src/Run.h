@@ -21,6 +21,6 @@ private:
 	NeuralNetwork nn;
 public:
 	Run(RunParams rp);
-	void runNumbers(int quality);
+	void runNumbers(int quality,int trainAount,int testAmount);
 	void runRandomData(function<vector<float>(const vector<float>&)> rule, float noise);
 };

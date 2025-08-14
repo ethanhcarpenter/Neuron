@@ -12,15 +12,15 @@
 
 int main() {
 	RunParams runParameters = {
-		{7 * 7,20,20,1},
+		{10,256,128,1},
 		true,
-		1000,
-		0.1,
+		100,
+		1e-3,
 		0.05,
-		"sigmoid",
+		"relu",
 	};
 	Run run(runParameters);
 	auto rule = RuleBook::sumGreaterThanN(6);
 
-	run.runNumbers(7);
+	run.runRandomData(rule,0.05);
 }

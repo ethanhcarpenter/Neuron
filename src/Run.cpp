@@ -8,17 +8,17 @@ Run::Run(RunParams rp) :runParams(rp) {
 		runParams.activationType
 	);
 }
-void Run::runNumbers(int quality) {
+void Run::runNumbers(int quality,int trainAmount,int testAmount) {
 	
 	DataSet data = { nn.numberOfInputs() };
 	ostringstream oss;
 	oss << "data\\data" << quality << quality << ".txt";
 	string filename = oss.str();
 
-	data.generateImageDataFromTextFileRandom(filename.c_str(), 10000);
+	data.generateImageDataFromTextFileRandom(filename.c_str(), trainAmount);
 	nn.train(data, runParams.epochs);
 
-	data.generateImageDataFromTextFileRandom(filename.c_str(), 1000);
+	data.generateImageDataFromTextFileRandom(filename.c_str(), testAmount);
 	nn.test(data, runParams.range);
 
 	nn.shutdown();

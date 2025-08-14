@@ -44,12 +44,15 @@ int Statistics::getEpoch() {
 }
 
 float Statistics::averageEpochTime() {
+	if (epochTimes.load()->size() == 0) { return 0; }
 	float avg = epochTimes.load()->back() / epochTimes.load()->size();
 	return avg;
 }
 
 float Statistics::lastEpochTime() {
-	return epochTimes.load()->back();
+	if (epochTimes.load()->size() == 0) { return 0; }
+	if (epochTimes.load()->size() == 1) { return epochTimes.load()->back(); }
+	return (epochTimes.load()->at(epochTimes.load()->size() - 1) - epochTimes.load()->at(epochTimes.load()->size() - 2));
 }
 
 void Statistics::setActivationType(string at) {

@@ -21,12 +21,9 @@ using namespace std;
 class Connection {
 private:
 	float fromX, fromY, toX, toY;
-	bool drawn = true;
 	float weight;
 public:
 	Connection(float fX, float fY, float tX, float tY, float w);
-	void setDrawn(bool drew);
-	const bool isDrawn();
 	void setWeight(float w);
 	const float getWeight();
 	const float getFromX();
@@ -53,6 +50,7 @@ private:
 	bool isSetup;
 	float neuronRadius;
 	ImGuiWindowFlags windowFlags;
+	int calculatedConnectionCount;
 public:
 	Visualiser();
 	void setup(const char* name, int targetMonitorIndex, vector<int> layerSizes,shared_ptr<Statistics>* s, int windowWidth = -1, int windowHeight = -1);

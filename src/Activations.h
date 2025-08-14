@@ -10,6 +10,8 @@ public:
 	static float derive(string type, float value);
 	static float sigmoid(float value);
 	static float sigmoidDerivative(float value);
+	static float relu(float value);
+	static float reluDerivative(float value);
 };
 
 
