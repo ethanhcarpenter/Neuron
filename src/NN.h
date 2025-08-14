@@ -7,25 +7,23 @@
 #include <thread>
 #include <atomic>
 
-
-
-
 #include "Visualiser.h"
 #include "DataSet.h"
-#include "StopWatch.h"
-#include "Progress.h"
 #include "Threader.h"
-
+#include "Activations.h"
 
 using namespace std;
 
-enum class NodeType { Input, Hidden, Output };
+enum NodeType {
+	Input,
+	Hidden,
+	Output
+};
 
-static float sigmoid(float x);
-
-static float sigmoidDerivative(float x);
 
 static float randomWeight();
+
+
 
 class Node {
 	NodeType type;
@@ -51,19 +49,22 @@ public:
 };
 
 class NeuralNetwork {
-	std::atomic<Visualiser*> visualiser;
+	atomic <shared_ptr<Visualiser>*> visualiser;
+	atomic <shared_ptr<Statistics>*> stats;
+	atomic<shared_ptr<shared_mutex>*> statsMutex;
+	
 	Threader threader;
-	Progress progress;
 	bool visualise;
 	vector<Layer> layers;
 	vector<int> layerSizes;
 	vector<vector<vector<float>>> weights;
 	float learningRate;
 	StopWatch stopwatch;
-	vector<float> epochElapsedTimesMS;
+	string activationType;
 
 public:
-	NeuralNetwork(bool v, vector<int> ls, float lr = 0.1);
+	NeuralNetwork();
+	void setup(bool v, vector<int> ls, float lr, string at);
 
 	void initWeights();
 
@@ -75,12 +76,9 @@ public:
 	vector<Layer>& getLayers();
 	vector<vector<vector<float>>>& getWeights();
 	int numberOfInputs();
-	void outputEpochTimes();
-	void outputTestTime();
-	void outputPredictions(const vector<float>& predicted, const vector<float>& expected, float range);
 
-	void train(DataSet& data, int epochs, bool debugTimes);
-	void test(DataSet& data, bool debugTimes, bool debugPredictions, float range);
+	void train(DataSet& data, int epochs);
+	void test(DataSet& data, float range);
 	void threadVisualise();
 
 	void shutdown();

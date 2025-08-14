@@ -1,5 +1,5 @@
 #include "Visualiser.h"
-#include <iostream>
+
 
 Connection::Connection(float fX, float fY, float tX, float tY, float w) {
 	fromX = fX;
@@ -20,9 +20,10 @@ const float Connection::getWeight() { return weight; }
 
 
 Visualiser::Visualiser() :isSetup(false) {};
-void Visualiser::setup(const char* name, int targetMonitorIndex, vector<int> layerSizes, int windowWidth, int windowHeight) {
+void Visualiser::setup(const char* name, int targetMonitorIndex, vector<int> layerSizes, shared_ptr<Statistics>* s, int windowWidth, int windowHeight) {
 	if (!glfwInit()) return;
 	int count;
+	stats.store(s);
 	GLFWmonitor** monitors = glfwGetMonitors(&count);
 	targetMonitor = monitors[targetMonitorIndex];
 	mode = glfwGetVideoMode(targetMonitor);
@@ -47,10 +48,13 @@ void Visualiser::setup(const char* name, int targetMonitorIndex, vector<int> lay
 	glfwMakeContextCurrent(window);
 
 	IMGUI_CHECKVERSION();
-	windowFlags = ImGuiWindowFlags_NoTitleBar |
-		ImGuiWindowFlags_NoResize |
-		ImGuiWindowFlags_NoMove |
-		ImGuiWindowFlags_NoCollapse;
+	windowFlags = ImGuiWindowFlags_NoTitleBar
+		| ImGuiWindowFlags_NoResize
+		| ImGuiWindowFlags_NoMove
+		| ImGuiWindowFlags_NoCollapse
+		| ImGuiWindowFlags_NoBackground   
+		| ImGuiWindowFlags_NoBringToFrontOnFocus;
+
 	ImGui::CreateContext();
 	ImGuiIO& io = ImGui::GetIO(); (void)io;
 	ImGui::StyleColorsDark();
@@ -169,13 +173,13 @@ void Visualiser::drawConnections() {
 }
 
 const bool Visualiser::isSettingUp() { return !isSetup; }
-string Visualiser::generateConnectionUID(int fromLayer, int from, int to, float weight) {
+string Visualiser::generateConnectionUID(int fromLayer, int from, int to) {
 	string uid = to_string(fromLayer) + to_string(from) + to_string(to);
 	return uid;
 }
 
 const float Visualiser::getConnectionWeight(int fromLayer, int from, int to, float weight) {
-	string uid = generateConnectionUID(fromLayer, from, to, weight);
+	string uid = generateConnectionUID(fromLayer, from, to);
 	auto it = connectionsIndexes.find(uid);
 	int index = it->second;
 	return connections.at(index).getWeight();
@@ -183,7 +187,7 @@ const float Visualiser::getConnectionWeight(int fromLayer, int from, int to, flo
 
 void Visualiser::updateConnection(int fromLayer, int from, int to, float weight) {
 
-	string uid = generateConnectionUID(fromLayer, from, to, weight);
+	string uid = generateConnectionUID(fromLayer, from, to);
 	auto it = connectionsIndexes.find(uid);
 	if (it == connectionsIndexes.end()) {
 		float fromX = positions[fromLayer][from].first;
@@ -208,7 +212,7 @@ void Visualiser::addConnectionIndex(int fromLayer, int from, int to) {
 	connectionsIndexes[uid] = static_cast<int>(connections.size() - 1);
 }
 
-void Visualiser::mainLoop() {
+void Visualiser::mainLoop(shared_ptr<shared_mutex>* statsMutex) {
 	glfwSetKeyCallback(window, [](GLFWwindow* window, int key, int scancode, int action, int mods) {
 		if (key == GLFW_KEY_ESCAPE && action == GLFW_PRESS)
 			glfwSetWindowShouldClose(window, GLFW_TRUE);
@@ -223,14 +227,13 @@ void Visualiser::mainLoop() {
 		glClearColor(0.1f, 0.1f, 0.1f, 1.0f);
 		glClear(GL_COLOR_BUFFER_BIT);
 
+		// Start ImGui frame
 		ImGui_ImplOpenGL3_NewFrame();
 		ImGui_ImplGlfw_NewFrame();
 		ImGui::NewFrame();
 
+		// Main tab window
 		bool showNN = false;
-		const ImGuiViewport* viewport = ImGui::GetMainViewport();
-		ImGui::SetNextWindowPos(viewport->Pos);
-		ImGui::SetNextWindowSize(viewport->Size);
 		if (ImGui::Begin("Main Tabs", nullptr, windowFlags)) {
 			if (ImGui::BeginTabBar("Tabs")) {
 				if (ImGui::BeginTabItem("Neural Network")) {
@@ -243,18 +246,40 @@ void Visualiser::mainLoop() {
 				}
 				if (ImGui::BeginTabItem("Tab 3")) {
 					ImGui::Text("Content for Tab 3");
-
 					ImGui::EndTabItem();
 				}
 				ImGui::EndTabBar();
 			}
+			ImGui::End();
 		}
-		ImGui::End();
 
-		ImGui::Render();
-		ImGui_ImplOpenGL3_RenderDrawData(ImGui::GetDrawData());
-
+		
 		if (showNN) {
+			//scope for the lock as to  not perma lock throughout the mainloop
+			{
+				std::shared_lock<std::shared_mutex> lock(*statsMutex->get());
+
+				ImGui::SetNextWindowPos(ImVec2(winWidth - 320, 100), ImGuiCond_Always);
+				ImGui::Begin("Training Overlay", nullptr, windowFlags);
+
+				ImGui::TextColored(ImVec4(0.2f, 0.7f, 1.0f, 1.0f), "Epoch %d", stats.load()->get()->getEpoch());
+
+				float inputProgress = static_cast<float>(stats.load()->get()->getInput()) / stats.load()->get()->getTotalInputs();
+				ImGui::Text("Input: %d / %d", stats.load()->get()->getInput(), stats.load()->get()->getTotalInputs());
+				ImGui::ProgressBar(inputProgress, ImVec2(-1, 0), "");
+
+				ImGui::TextColored(ImVec4(0.2f, 0.7f, 1.0f, 1.0f), "last epoch time: %.2f%", stats.load()->get()->lastEpochTime());
+				ImGui::TextColored(ImVec4(0.2f, 0.7f, 1.0f, 1.0f), "Average epoch time: %.2f%", stats.load()->get()->averageEpochTime());
+
+
+				// Optional: approximate epoch time
+				//float avgTimePerInput = stats->epochTime.load() / stats->input.load(); // assuming you track epochTime
+				//ImGui::Text("Approx. Epoch Time: %.2fs", avgTimePerInput * stats.load()->getTotalInputs());
+
+				ImGui::End();
+			}
+
+			// OpenGL rendering
 			glMatrixMode(GL_PROJECTION);
 			glPushMatrix();
 			glLoadIdentity();
@@ -272,11 +297,16 @@ void Visualiser::mainLoop() {
 			glMatrixMode(GL_MODELVIEW);
 		}
 
+		// Render ImGui
+		ImGui::Render();
+		ImGui_ImplOpenGL3_RenderDrawData(ImGui::GetDrawData());
+
 		glfwSwapBuffers(window);
 	}
-	terminate();
 
+	terminate();
 }
+
 
 void Visualiser::terminate() {
 	ImGui_ImplOpenGL3_Shutdown();

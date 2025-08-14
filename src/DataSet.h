@@ -1,4 +1,5 @@
 #pragma once
+
 #include <vector>
 #include <functional>
 #include <random>
@@ -6,7 +7,7 @@
 #include <fstream>
 #include <sstream>
 #include <algorithm>
-#include <random>
+
 using namespace std;
 
 class DataSet {

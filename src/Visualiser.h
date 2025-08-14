@@ -3,11 +3,18 @@
 #include "imgui.h"
 #include "imgui_impl_glfw.h"
 #include "imgui_impl_opengl3.h"
+
 #include <vector>
 #include <unordered_map>
 #include <string>
 #include <algorithm>
 #include <cmath>
+#include <thread>
+#include <atomic>
+#include <shared_mutex>
+#include "Statistics.h"
+
+
 constexpr double M_PI = 3.14159265358979323846;
 using namespace std;
 
@@ -31,6 +38,7 @@ public:
 
 class Visualiser {
 private:
+	atomic<shared_ptr<Statistics>*> stats;
 	GLFWmonitor* targetMonitor;
 	const GLFWvidmode* mode;
 	GLFWwindow* window;
@@ -47,7 +55,7 @@ private:
 	ImGuiWindowFlags windowFlags;
 public:
 	Visualiser();
-	void setup(const char* name, int targetMonitorIndex, vector<int> layerSizes, int windowWidth = -1, int windowHeight = -1);
+	void setup(const char* name, int targetMonitorIndex, vector<int> layerSizes,shared_ptr<Statistics>* s, int windowWidth = -1, int windowHeight = -1);
 	const float getTabContentHeight();
 	void generateNeuronPositions(const vector<int>& layers, float width, float height);
 	void drawCircle(float cx, float cy, float r, int num_segments);
@@ -60,9 +68,9 @@ public:
 	vector<Connection>& getConnections();
 	GLFWwindow* getWindow();
 	void addConnectionIndex(int fromLayer, int from, int to);
-	string generateConnectionUID(int fromLayer, int from, int to, float weight);
+	string generateConnectionUID(int fromLayer, int from, int to);
 	const float getConnectionWeight(int fromLayer, int from, int to, float weight);
-	void mainLoop();
+	void mainLoop(shared_ptr<shared_mutex>* stastMutex);
 	const bool isSettingUp();
 	void updateConnection(int fromLayer, int from, int to, float weight);
 

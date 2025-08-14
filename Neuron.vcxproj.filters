@@ -29,9 +29,6 @@
     <ClInclude Include="src\NN.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="src\Progress.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
     <ClInclude Include="src\StopWatch.h">
       <Filter>Header Files</Filter>
     </ClInclude>
@@ -74,15 +71,18 @@
     <ClInclude Include="src\Run.h">
       <Filter>Header Files</Filter>
     </ClInclude>
+    <ClInclude Include="src\Statistics.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="src\Activations.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="src\DataSet.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="src\NN.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="src\Progress.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="src\Rules.cpp">
@@ -122,6 +122,12 @@
       <Filter>Run Files</Filter>
     </ClCompile>
     <ClCompile Include="src\Run.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="src\Statistics.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="src\Activations.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
   </ItemGroup>

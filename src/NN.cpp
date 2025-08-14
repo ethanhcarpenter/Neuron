@@ -1,17 +1,8 @@
 #include "NN.h"
 
-static float sigmoid(float x) {
-	return 1.0 / (1.0 + exp(-x));
-}
-
-static float sigmoidDerivative(float x) {
-	return x * (1 - x);
-}
-
 static float randomWeight() {
 	return ((float)rand() / RAND_MAX) * 2 - 1;
 }
-
 
 
 Node::Node(NodeType t) : type(t), value(0), bias(randomWeight()) {}
@@ -31,8 +22,10 @@ vector<Node>& Layer::getNodes() { return nodes; }
 int Layer::getSize() { return nodes.size(); }
 
 
+NeuralNetwork::NeuralNetwork() {}
 
-NeuralNetwork::NeuralNetwork(bool v, vector<int> ls, float lr) {
+void NeuralNetwork::setup(bool v, vector<int> ls, float lr, string at) {
+	activationType = at;
 	learningRate = lr;
 	visualise = v;
 	layerSizes = ls;
@@ -45,9 +38,11 @@ NeuralNetwork::NeuralNetwork(bool v, vector<int> ls, float lr) {
 	}
 	initWeights();
 	threader.getSide() = thread(&Threader::visualiserWorker, &threader);
-	if (visualise) {
-		visualiser.store(new Visualiser);
-	}
+
+	statsMutex.store(new std::shared_ptr<std::shared_mutex>(std::make_shared<std::shared_mutex>()));
+	visualiser.store(new std::shared_ptr<Visualiser>(std::make_shared<Visualiser>()));
+	stats.store(new std::shared_ptr<Statistics>(std::make_shared<Statistics>(lr)));
+	
 
 }
 
@@ -80,7 +75,7 @@ void NeuralNetwork::feedforward(vector<float>& inputVals, bool firstPass, bool u
 				for (int i = 0; i < prev.size(); ++i)
 					sum += prev[i].getValue() * weights[l - 1][i][j];
 				sum += curr[j].getBias();
-				curr[j].setValue(sigmoid(sum));
+				curr[j].setValue(Activations::activate(activationType, sum));
 			}
 		}
 		return;
@@ -102,13 +97,12 @@ void NeuralNetwork::feedforward(vector<float>& inputVals, bool firstPass, bool u
 				updates.push_back({ int(l - 1), i, j, weights[l - 1][i][j] });
 			}
 			sum += curr[j].getBias();
-			curr[j].setValue(sigmoid(sum));
+			curr[j].setValue(Activations::activate(activationType, sum));
 		}
 	}
 
 	if (!updateWeights) { return; }
-	const int MAX_QUEUE_SIZE = 1600;
-	std::unique_lock<std::mutex> lock(threader.getQueueMutex());
+	unique_lock<mutex> lock(threader.getQueueMutex());
 	threader.getQueue().emplace([updates = move(updates), firstPass, this, visualiser = visualiser.load()]() {
 		if (!visualiser) return;
 		int update = 0;
@@ -117,10 +111,10 @@ void NeuralNetwork::feedforward(vector<float>& inputVals, bool firstPass, bool u
 			int from = u.from;
 			int to = u.to;
 			float weight = u.weight;
-			float lastweight = 11;
-			if (!firstPass) lastweight = visualiser->getConnectionWeight(layer, from, to, weight);
+			float lastweight = 1.1;
+			if (!firstPass) lastweight = visualiser->get()->getConnectionWeight(layer, from, to, weight);
 			if (roundf(abs(lastweight) * 10) == roundf(abs(weight) * 10)) continue;
-			visualiser->updateConnection(layer, from, to, weight);
+			visualiser->get()->updateConnection(layer, from, to, weight);
 		}
 		});
 
@@ -136,7 +130,7 @@ void NeuralNetwork::backpropagate(vector<float>& targetVals) {
 	for (int i = 0; i < outputSize; ++i) {
 		float outVal = output[i].getValue();
 		float error = targetVals[i] - outVal;
-		deltas.back()[i] = error * sigmoidDerivative(outVal);
+		deltas.back()[i] = error * Activations::derive(activationType, outVal);
 	}
 
 	for (int l = layers.size() - 2; l > 0; --l) {
@@ -151,7 +145,7 @@ void NeuralNetwork::backpropagate(vector<float>& targetVals) {
 				sum += weights[l][i][j] * deltas[l + 1][j];
 			}
 
-			deltas[l][i] = sum * sigmoidDerivative(curr[i].getValue());
+			deltas[l][i] = sum * Activations::derive(activationType, curr[i].getValue());
 		}
 	}
 
@@ -190,86 +184,61 @@ vector<vector<vector<float>>>& NeuralNetwork::getWeights() {
 int NeuralNetwork::numberOfInputs() {
 	return layers[0].getNodes().size();
 }
-void NeuralNetwork::outputEpochTimes() {
-	float total = stopwatch.elapsedSeconds();
-	float sum = epochElapsedTimesMS[0];
-	for (int i = 0; i < epochElapsedTimesMS.size() - 1; i++) { sum += (epochElapsedTimesMS[i + 1] - epochElapsedTimesMS[i]); }
-	float avg = sum / epochElapsedTimesMS.size();
-	cout << "[EPOCH TIMES] average epoch time: " << avg << " ms (" << epochElapsedTimesMS.size() << " epochs)" << "\n";
-	cout << "[EPOCH TIMES] total training time: " << total << " s " << "\n";
-}
-void NeuralNetwork::outputTestTime() {
-	float total = stopwatch.elapsedSeconds();
-	cout << "[TEST TIMES] total test time: " << total << " s " << "\n";
-}
 
-void NeuralNetwork::outputPredictions(const vector<float>& predicted, const vector<float>& expected, float range) {
-	for (size_t j = 0; j < predicted.size(); ++j) {
-		bool correct = abs(predicted[j] - expected[j]) < range;
-		cout << (correct ? "[PASS]" : "[FAIL]")
-			<< " p:" << predicted[j]
-			<< " e:" << expected[j];
-		if (j < predicted.size() - 1) cout << " | ";
-	}
-	cout << "\n";
-}
 
 void NeuralNetwork::threadVisualise() {
-	threader.getMain() = thread([&, this] {
-		visualiser.load()->setup("NN", 0, layerSizes);
-		visualiser.load()->mainLoop();
+	threader.getMain() = std::thread([&, this] {
+		visualiser.load()->get()->setup("NN", 0, layerSizes,stats);
+		visualiser.load()->get()->mainLoop(statsMutex);
 		});
 }
 
-
-
-void NeuralNetwork::train(DataSet& data, int epochs, bool debugTimes) {
-	progress.trackNew("epoch", 0, epochs, true);
-	cout << "Training Started" << "\n";
-	epochElapsedTimesMS.clear();
-	if (debugTimes) {
-		stopwatch.start();
+void NeuralNetwork::train(DataSet& data, int epochs) {
+	if (auto mtxPtr = statsMutex.load()) {
+		std::unique_lock<std::shared_mutex> lock(*mtxPtr->get());
+		stats.load()->get()->setTotalInputs(data.getInputs().size());
 	}
+
+	stopwatch.start();
+
 	if (visualise) {
 		threadVisualise();
-		while (visualiser.load()->isSettingUp());
+		while (visualiser.load()->get()->isSettingUp());
 	}
+
 	int inputSize = data.getInputs().size();
-	int modulo = inputSize;
-	if ((inputSize / 3) > 0) { modulo = inputSize / 3; }
+	int modulo = (inputSize / 3) > 0 ? inputSize / 3 : inputSize;
+
 	for (int e = 0; e < epochs; e++) {
-		progress.trackNew("input", 0, inputSize, true);
+		if (auto mtxPtr = statsMutex.load()->get()) {
+			std::unique_lock<std::shared_mutex> lock(*mtxPtr);
+			stats.load()->get()->nextEpoch(stopwatch);
+			stats.load()->get()->resetInput();
+		}
 		for (int i = 0; i < inputSize; ++i) {
+
+			if (auto mtxPtr = statsMutex.load()->get()) {
+				std::unique_lock<std::shared_mutex> lock(*mtxPtr);
+				stats.load()->get()->nextInput();
+			}
 
 			feedforward(data.getInputs()[i], e == 0 && i == 0, i % modulo == 0);
 			backpropagate(data.getOutputs()[i]);
-			progress.update("input", 1);
 		}
-		if (debugTimes) { epochElapsedTimesMS.push_back(stopwatch.elapsedMilliSeconds()); }
-		progress.update("epoch", 1);
-		//go in main loop
-		cout << "\33[2K\r";
-		cout << "Epoch: " << progress.getPercent("epoch") << " %"
-			//<< "% | Input: " << progress.getPercent("input") << " %"
-			<< flush;
 	}
-	cout << "\33[2K\r" << flush;
-	if (debugTimes) { outputEpochTimes(); }
-	threader.setSideThreadRunning(false);
+	threader.setSideThreadRunning(true);
 }
 
-void NeuralNetwork::test(DataSet& data, bool debugTimes, bool debugPredictions, float range) {
+void NeuralNetwork::test(DataSet& data, float range) {
 	int correctAmount = 0;
 	auto& inputs = data.getInputs();
 	auto& outputs = data.getOutputs();
-	if (debugTimes) { stopwatch.start(); }
 	for (size_t i = 0; i < inputs.size(); ++i) {
 		feedforward(inputs[i]);
 		auto predicted = getOutput();
 		bool match = true;
 		for (size_t j = 0; j < predicted.size(); ++j) {
 			bool correct = abs(predicted[j] - outputs[i][j]) < range;
-			if (debugPredictions) { outputPredictions(predicted, outputs[i], range); }
 			if (!correct) {
 				match = false;
 				break;
@@ -277,7 +246,6 @@ void NeuralNetwork::test(DataSet& data, bool debugTimes, bool debugPredictions, 
 		}
 		if (match) correctAmount++;
 	}
-	if (debugTimes) { outputTestTime(); }
 	float accuracy = 100.0 * correctAmount / inputs.size();
 	cout << "Accuracy: " << accuracy << "%" << "\n";
 }

@@ -19,6 +19,7 @@
     </ProjectConfiguration>
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="src\Activations.h" />
     <ClInclude Include="src\Run.h" />
     <ClInclude Include="src\Rules.h" />
     <ClInclude Include="lib\imgui\imconfig.h" />
@@ -32,12 +33,13 @@
     <ClInclude Include="lib\imgui\imstb_truetype.h" />
     <ClInclude Include="src\DataSet.h" />
     <ClInclude Include="src\NN.h" />
-    <ClInclude Include="src\Progress.h" />
     <ClInclude Include="src\StopWatch.h" />
     <ClInclude Include="src\Threader.h" />
     <ClInclude Include="src\Visualiser.h" />
+    <ClInclude Include="src\Statistics.h" />
   </ItemGroup>
   <ItemGroup>
+    <ClCompile Include="src\Activations.cpp" />
     <ClCompile Include="src\main.cpp" />
     <ClCompile Include="src\Run.cpp" />
     <ClCompile Include="lib\imgui\imgui.cpp" />
@@ -49,11 +51,11 @@
     <ClCompile Include="lib\imgui\imgui_widgets.cpp" />
     <ClCompile Include="src\DataSet.cpp" />
     <ClCompile Include="src\NN.cpp" />
-    <ClCompile Include="src\Progress.cpp" />
     <ClCompile Include="src\Rules.cpp" />
     <ClCompile Include="src\StopWatch.cpp" />
     <ClCompile Include="src\Threader.cpp" />
     <ClCompile Include="src\Visualiser.cpp" />
+    <ClCompile Include="src\Statistics.cpp" />
   </ItemGroup>
   <ItemGroup>
     <Text Include="data\data1414.txt" />

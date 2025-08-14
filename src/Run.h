@@ -1,8 +1,10 @@
 #pragma once
+
 #include "NN.h"
 #include "DataSet.h"
 #include "Rules.h"
-using namespace std; 
+
+using namespace std;
 
 struct RunParams {
 	vector<int> architecture;
@@ -10,13 +12,13 @@ struct RunParams {
 	int epochs;
 	float learningRate;
 	float range;
-	bool debugTimes;
-	bool debugPredictions;
+	string activationType;
 };
 
 class Run {
 private:
 	RunParams runParams;
+	NeuralNetwork nn;
 public:
 	Run(RunParams rp);
 	void runNumbers(int quality);
