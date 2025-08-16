@@ -85,7 +85,7 @@ void NeuralNetwork::feedforward(vector<float>& inputVals, bool firstPass, bool u
 		int layer, from, to;
 		float weight;
 	};
-	std::vector<VisualUpdate> updates;
+	vector<VisualUpdate> updates;
 
 	for (size_t l = 1; l < layers.size(); ++l) {
 		auto& prev = layers[l - 1].getNodes();
