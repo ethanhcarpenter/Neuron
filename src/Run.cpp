@@ -1,38 +1,37 @@
 #include "Run.h"
 
-Run::Run(RunParams rp) :runParams(rp) {
-	nn.setup (
-		runParams.visualiseNN,
-		runParams.architecture,
-		runParams.learningRate,
-		runParams.activationType
-	);
+
+Run::Run(){
+	nn.setup();
 }
 void Run::runNumbers(int quality,int trainAmount,int testAmount) {
 	
-	DataSet data = { nn.numberOfInputs() };
-	ostringstream oss;
+	DataSet data = { static_cast<int>(pow(quality,2)) };
+	std::ostringstream oss;
 	oss << "data\\data" << quality << quality << ".txt";
-	string filename = oss.str();
+	std::string filename = oss.str();
 
 	data.generateImageDataFromTextFileRandom(filename.c_str(), trainAmount);
-	nn.train(data, runParams.epochs);
+	nn.train(data);
 
 	data.generateImageDataFromTextFileRandom(filename.c_str(), testAmount);
-	nn.test(data, runParams.range);
+	nn.test(data);
 
 	nn.shutdown();
 }
 
-void Run::runRandomData(function<vector<float>(const vector<float>&)> rule, float noise) {
 
-	DataSet data = { nn.numberOfInputs() };
 
-	data.generateDataset(true, noise, rule);
-	nn.train(data, runParams.epochs);
 
-	data.generateDataset(false, noise, rule);
-	nn.test(data, runParams.range);
-
-	nn.shutdown();
-}
+//void Run::runRandomData(std::function<std::vector<float>(const std::vector<float>&)> rule, float noise) {
+//
+//	DataSet data = { nn.numberOfInputs() };
+//
+//	data.generateDataset(true, noise, rule);
+//	nn.train(data);
+//
+//	data.generateDataset(false, noise, rule);
+//	nn.test(data);
+//
+//	nn.shutdown();
+//}

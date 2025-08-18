@@ -1,17 +1,37 @@
 #include "StopWatch.h"
 
-
+#pragma region Logic
 void StopWatch::start() {
-	startTime = chrono::high_resolution_clock::now();
+	startTime = std::chrono::high_resolution_clock::now();
+	pausedDuration = std::chrono::duration<float>::zero();
+	isPaused = false;
 }
+void StopWatch::pause() {
+	if (!isPaused) {
+		pauseTime = std::chrono::high_resolution_clock::now();
+		isPaused = true;
+	}
+}
+void StopWatch::resume() {
+	if (isPaused) {
+		auto now = std::chrono::high_resolution_clock::now();
+		pausedDuration += now - pauseTime;
+		isPaused = false;
+	}
+}
+#pragma endregion
 
-const float StopWatch::elapsedSeconds() {
-	auto now = chrono::high_resolution_clock::now();
-	chrono::duration<float> elapsed = now - startTime;
+
+
+#pragma region Get
+float StopWatch::getElapsedSeconds() const {
+	auto now = isPaused ? pauseTime : std::chrono::high_resolution_clock::now();
+	std::chrono::duration<float> elapsed = now - startTime - pausedDuration;
 	return elapsed.count();
 }
-const float StopWatch::elapsedMilliSeconds() {
-	auto now = chrono::high_resolution_clock::now();
-	chrono::duration<float> elapsed = now - startTime;
-	return elapsed.count() * 1000;
+float StopWatch::getElapsedMilliSeconds() const {
+	return getElapsedSeconds() * 1000.0f;
 }
+#pragma endregion
+
+

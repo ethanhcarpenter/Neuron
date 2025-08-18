@@ -3,20 +3,20 @@
 #include "imgui.h"
 #include "imgui_impl_glfw.h"
 #include "imgui_impl_opengl3.h"
-
+#include <atomic>
+#include <string>
+#include <memory>
 #include <vector>
 #include <unordered_map>
-#include <string>
-#include <algorithm>
-#include <cmath>
-#include <thread>
-#include <atomic>
 #include <shared_mutex>
+
+
+
 #include "Statistics.h"
 
 
 constexpr double M_PI = 3.14159265358979323846;
-using namespace std;
+
 
 class Connection {
 private:
@@ -32,45 +32,69 @@ public:
 	const float getToY();
 
 };
+struct ButtonStyle {
+	ImVec2 dimensions;
+	std::string text;
+	ImVec4 colour;
+	ImVec4 hoverColour;
+	ImVec4 activeColour;
+};
 
 class Visualiser {
 private:
-	atomic<shared_ptr<Statistics>*> stats;
+	std::atomic<std::shared_ptr<Statistics>*> stats;
 	GLFWmonitor* targetMonitor;
 	const GLFWvidmode* mode;
 	GLFWwindow* window;
-	vector<vector<pair<float, float>>> positions;
-	vector<int> layers;
-	pair<int, int> windowDimensions;
-	vector<Connection> connections;
-	unordered_map<string, int>connectionsIndexes;
+	std::vector<std::vector<std::pair<float, float>>> positions;
+	std::vector<int> layers;
+	std::pair<int, int> windowDimensions;
+	int usableHeight;
+	std::vector<Connection> connections;
+	std::unordered_map<std::string, int>connectionsIndexes;
 	float lastUpdate;
 	size_t currentConnection;
 	bool startingAnimation;
 	bool isSetup;
+	bool isNNRunning;
 	float neuronRadius;
 	ImGuiWindowFlags windowFlags;
 	int calculatedConnectionCount;
+	ImGuiIO io;
+	ImFont* fontDefault;
+	ImFont* fontLarge;
+	bool confirmedLayerSizes;
 public:
 	Visualiser();
-	void setup(const char* name, int targetMonitorIndex, vector<int> layerSizes,shared_ptr<Statistics>* s, int windowWidth = -1, int windowHeight = -1);
-	const float getTabContentHeight();
-	void generateNeuronPositions(const vector<int>& layers, float width, float height);
+	void setup(const char* name, int targetMonitorIndex, std::shared_ptr<Statistics>* s, int windowWidth = -1, int windowHeight = -1);
+	int getTabContentHeight();
+	void generateNeuronPositions(const std::vector<int>& layers, float width, float height);
 	void drawCircle(float cx, float cy, float r, int num_segments);
 	const float calculateNeuronRadius(float height, float margin);
 	void drawNeurons();
-	tuple<float, float, float, float> generateColour(float weight);
+	std::tuple<float, float, float, float> generateColour(float weight);
 	void drawConnections();
 	void terminate();
 	const int getCurrentConnection();
-	vector<Connection>& getConnections();
+	std::vector<Connection>& getConnections();
 	GLFWwindow* getWindow();
 	void addConnectionIndex(int fromLayer, int from, int to);
-	string generateConnectionUID(int fromLayer, int from, int to);
+	std::string generateConnectionUID(int fromLayer, int from, int to);
 	const float getConnectionWeight(int fromLayer, int from, int to, float weight);
-	void mainLoop(shared_ptr<shared_mutex>* stastMutex);
+	void mainLoop(std::shared_ptr<std::shared_mutex>* stastMutex);
 	const bool isSettingUp();
 	void updateConnection(int fromLayer, int from, int to, float weight);
-
-
+	void drawNeuralNetwork(int winWidth, int winHeight, std::shared_ptr<std::shared_mutex>* statsMutex);
+	void drawConsole(int winWidth, int winHeight, std::shared_ptr<std::shared_mutex>* statsMutex);
+	std::vector<int> drawLayerInputs();
+	std::tuple<int, float> drawNumericInputs();
+	std::string drawActivationInput();
+	bool drawStartButton(bool running);
+	bool confirmButton();
+	void resetButton();
+	bool drawButton(ButtonStyle defaultStyle, ButtonStyle constantPressedStyle = {}, bool lock = false);
+	void calculateConnectionCount();
+	void updateStats(std::shared_ptr<std::shared_mutex>* statsMutex, bool r, std::vector<int> ls, std::tuple<int, float> ni, std::string at);
+	void postSetupLogic();
+	void drawImGuiBriefNNStats(int winWidth, int winHeight, std::shared_ptr<std::shared_mutex>* statsMutex);
 };

@@ -1,13 +1,19 @@
 #pragma once
-
 #include <chrono>
 
-using namespace std;
+
+
+
 
 class StopWatch {
-	chrono::time_point<chrono::high_resolution_clock> startTime;
+	std::chrono::high_resolution_clock::time_point startTime;
+	std::chrono::high_resolution_clock::time_point pauseTime;
+	std::chrono::duration<float> pausedDuration{ 0 };
+	bool isPaused = false;
 public:
 	void start();
-	const float elapsedSeconds();
-	const float elapsedMilliSeconds();
+	void pause();
+	void resume();
+	float getElapsedSeconds() const;
+	float getElapsedMilliSeconds()const;
 };

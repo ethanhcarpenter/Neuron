@@ -1,29 +1,29 @@
 #pragma once
-#include <thread>
-#include <atomic>
 #include <queue>
-#include <functional>
-#include <iostream>
+#include <atomic>
+#include <thread>
 #include <mutex>
+#include <functional>
 
-using namespace std;
+
+
 
 class Threader {
 private:
-	queue<function<void()>> sideSideThreadFunction;
-	atomic<bool> sideAlternateThreadRunning;
-	mutex queueMutex;
-	condition_variable cv;
-	thread mainAlternateThread;
-	thread sideAlternateThread;
+	std::queue<std::function<void()>> sideSideThreadFunction;
+	std::atomic<bool> sideAlternateThreadRunning;
+	std::mutex queueMutex;
+	std::condition_variable cv;
+	std::thread mainAlternateThread;
+	std::thread sideAlternateThread;
 public:
 	Threader();
 	void visualiserWorker();
-	thread& getMain();
-	thread& getSide();
-	mutex& getQueueMutex();
-	queue<function<void()>>& getQueue();
-	condition_variable& getCV();
+	std::thread& getMain();
+	std::thread& getSide();
+	std::mutex& getQueueMutex();
+	std::queue<std::function<void()>>& getQueue();
+	std::condition_variable& getCV();
 	void setSideThreadRunning(bool v);
 
 };

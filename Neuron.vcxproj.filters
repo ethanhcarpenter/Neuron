@@ -26,7 +26,7 @@
     <ClInclude Include="src\DataSet.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="src\NN.h">
+    <ClInclude Include="src\NeuralNetwork.h">
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="src\StopWatch.h">
@@ -77,12 +77,15 @@
     <ClInclude Include="src\Activations.h">
       <Filter>Header Files</Filter>
     </ClInclude>
+    <ClInclude Include="Application.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="src\DataSet.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="src\NN.cpp">
+    <ClCompile Include="src\NeuralNetwork.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="src\Rules.cpp">
@@ -130,6 +133,9 @@
     <ClCompile Include="src\Activations.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="Application.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <Text Include="data\data77.txt">
@@ -141,5 +147,10 @@
     <Text Include="data\data2828.txt">
       <Filter>Data Files</Filter>
     </Text>
+  </ItemGroup>
+  <ItemGroup>
+    <Font Include="lib\fonts\vs.ttf">
+      <Filter>Data Files</Filter>
+    </Font>
   </ItemGroup>
 </Project>

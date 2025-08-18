@@ -1,15 +1,10 @@
 #pragma once
-
-#include <vector>
-#include <numeric>
-#include <cmath>
 #include <functional>
-#include <algorithm>
+#include <numeric>
 
-using namespace std;
 
 class RuleBook {
 public:
-	static function<vector<float>(const vector<float>&)> sumGreaterThanN(float n);
+	static std::function<std::vector<float>(const std::vector<float>&)> sumGreaterThanN(float n);
 };
 

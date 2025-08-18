@@ -1,25 +1,29 @@
 #include "DataSet.h"
 
+
+
 DataSet::DataSet(int inputNumber) :numberOfInputs(inputNumber) {}
 
 void DataSet::generateImageDataFromTextFile(const char* path, int amount) {
-	srand(time(0));
+	srand(std::time(0));
 	inputs.clear();
 	outputs.clear();
-	ifstream file(path);
-	string line;
+	std::ifstream file(path);
+	std::string line;
 	int amountAdded = 0;
 	while (amountAdded < amount && getline(file, line)) {
 		int label;
-		vector<float> pixels;
+		std::vector<float> pixels;
 		float val;
-		istringstream iss(line);
+		std::istringstream iss(line);
 		iss >> label;
 		while (iss >> val) {
 			pixels.push_back(val);
 		}
 		inputs.push_back(pixels);
-		outputs.push_back({ static_cast<float>(label) / 10 });
+		std::vector<float> target(10, 0.0f);
+		target[label] = 1.0f;
+		outputs.push_back(target);
 		amountAdded++;
 	}
 	file.close();
@@ -55,23 +59,26 @@ void DataSet::generateImageDataFromTextFileRandom(const char* path, int amount) 
 			while (iss >> val) pixels.push_back(val);
 
 			inputs.push_back(pixels);
-			outputs.push_back({ static_cast<float>(label) / 10 });
+			std::vector<float> target(10, 0.0f);
+			target[label] = 1.0f;
+			outputs.push_back(target);
+
 		}
 	}
 	file.close();
 }
 
-void DataSet::generateDataset(bool train,float noise, function<vector<float>(const vector<float>&)> rule) {
+void DataSet::generateDataset(bool train,float noise, std::function<std::vector<float>(const std::vector<float>&)> rule) {
 	srand(time(0));
-	random_device rd;
-	mt19937 g(rd());
+	std::random_device rd;
+	std::mt19937 g(rd());
 	inputs.clear();
 	outputs.clear();
 	int total = 1 << numberOfInputs;
 	int sampleSize = total / (train ? 8 : 10);
-	vector<vector<float>> allInputs;
+	std::vector<std::vector<float>> allInputs;
 	for (int i = 0; i < total; ++i) {
-		vector<float> in(numberOfInputs);
+		std::vector<float> in(numberOfInputs);
 		for (int bit = 0; bit < numberOfInputs; ++bit) {
 			float base = ((i >> bit) & 1);
 			if (noise > 0)
@@ -89,10 +96,10 @@ void DataSet::generateDataset(bool train,float noise, function<vector<float>(con
 }
 
 
-vector<vector<float>>& DataSet::getInputs() {
+std::vector<std::vector<float>>& DataSet::getInputs() {
 	return inputs;
 }
 
-vector<vector<float>>& DataSet::getOutputs() {
+std::vector<std::vector<float>>& DataSet::getOutputs() {
 	return outputs;
 }

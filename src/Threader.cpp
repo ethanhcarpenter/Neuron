@@ -1,25 +1,40 @@
 #include "Threader.h"
 
-Threader::Threader() :sideAlternateThreadRunning(true) {};
 
+#pragma region Initialise
+Threader::Threader() :sideAlternateThreadRunning(true) {};
+#pragma endregion
+
+
+
+#pragma region Worker
 void Threader::visualiserWorker() {
 	while (true) {
-		function<void()> task;
+		std::function<void()> task;
 		{
-			unique_lock<mutex> lock(queueMutex);
+			std::unique_lock<std::mutex> lock(queueMutex);
 			cv.wait(lock, [&] { return !sideAlternateThreadRunning || !sideSideThreadFunction.empty(); });
-			if (!sideAlternateThreadRunning && sideSideThreadFunction.empty())
-				break;
-			task = move(sideSideThreadFunction.front());
+			if (!sideAlternateThreadRunning && sideSideThreadFunction.empty()) { break; }
+			task = std::move(sideSideThreadFunction.front());
 			sideSideThreadFunction.pop();
 		}
 		task();
 	}
 }
+#pragma endregion
 
+
+
+#pragma region Get
+std::thread& Threader::getMain() { return mainAlternateThread; }
+std::thread& Threader::getSide() { return sideAlternateThread; }
+std::mutex& Threader::getQueueMutex() { return queueMutex; }
+std::queue<std::function<void()>>& Threader::getQueue() { return sideSideThreadFunction; }
+std::condition_variable& Threader::getCV() { return cv; }
+#pragma endregion
+
+
+
+#pragma region Set
 void Threader::setSideThreadRunning(bool v) { sideAlternateThreadRunning = v; }
-thread& Threader::getMain() { return mainAlternateThread; }
-thread& Threader::getSide() { return sideAlternateThread; }
-mutex& Threader::getQueueMutex() { return queueMutex; }
-queue<function<void()>>& Threader::getQueue() { return sideSideThreadFunction; }
-condition_variable& Threader::getCV() { return cv; }
+#pragma endregion

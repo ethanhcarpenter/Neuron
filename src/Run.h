@@ -1,26 +1,19 @@
 #pragma once
+#include <functional>
+#include <sstream>
+#include <string>
 
-#include "NN.h"
+#include "NeuralNetwork.h"
 #include "DataSet.h"
 #include "Rules.h"
 
-using namespace std;
-
-struct RunParams {
-	vector<int> architecture;
-	bool visualiseNN;
-	int epochs;
-	float learningRate;
-	float range;
-	string activationType;
-};
 
 class Run {
 private:
-	RunParams runParams;
+
 	NeuralNetwork nn;
 public:
-	Run(RunParams rp);
-	void runNumbers(int quality,int trainAount,int testAmount);
-	void runRandomData(function<vector<float>(const vector<float>&)> rule, float noise);
+	Run();
+	void runNumbers(int quality, int trainAount, int testAmount);
+	void runRandomData(std::function<std::vector<float>(const std::vector<float>&)> rule, float noise);
 };
